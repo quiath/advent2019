@@ -45,5 +45,25 @@ int main(int, char**)
         }
     }
     cout << best_result.first << "," << best_result.second << endl;
+
+    string image(lay_len, ' ');
+
+    for (int i = len - lay_len; i >= 0; i -= lay_len)
+    {
+        string_view layer(&input[i], sx * sy);
+        for (auto j = 0U; j < lay_len; ++j)
+        {
+            switch (layer[j])
+            {
+                case '0': image[j] = '.'; break;
+                case '1': image[j] = 'X'; break;
+            }
+        }
+    }
+    for (int i = 0; i < sy; ++i)
+    {
+        cout << string_view(&image[i * sx], sx) << endl;
+    }
+    return 0;
 }
 
