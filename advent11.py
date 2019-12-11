@@ -124,15 +124,11 @@ def part1(lst):
         res = c.proc()
     print(c.outputs)
     
-
-def main():
-    
+def paint(board):
     s =  open("input11.txt").read()
-    
-    board = defaultdict(int)
 
     lst = [ int(x) for x in s.split(",") ]
-    
+
     D = [(0, -1), (1, 0), (0, 1), (-1, 0)]
     x, y = 0, 0
     d = 0
@@ -159,7 +155,37 @@ def main():
         x += D[d][0]
         y += D[d][1]
 
-    print(len(board))
+
+def main():
+    
+    board = defaultdict(int)
+
+    paint(board) 
+
+    print("PART 1", len(board))
+    
+    print("PART 2");
+
+    board = defaultdict(int)
+    board[(0, 0)] = 1
+    
+    paint(board) 
+    
+    xx, yy = zip(*board.keys())
+    minx = min(xx)
+    maxx = max(xx)
+
+    miny = min(yy)
+    maxy = max(yy)
+
+    for y in range(miny, maxy + 1):
+        for x in range(minx, maxx + 1):
+            if (x, y) in board:
+                v = board[(x, y)]
+                print(".#"[v], end="")
+            else:
+                print(" ", end="")
+        print()
 
 if __name__ == "__main__":
     main()
