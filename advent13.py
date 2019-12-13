@@ -43,6 +43,7 @@ class Proc:
         a = self.a
         i = self.ip
         my_id = self.id
+        r = None
         
         while True:
 
@@ -53,7 +54,8 @@ class Proc:
             op1 = self.a.get(self.get_address(i + 1, mode1), 0)
             
             if op == 3:
-                r = self.inputs.pop(0)
+                if len(self.inputs) > 0:
+                    r = self.inputs.pop(0)
                 if DEBUG: print("{} received: {}".format(my_id, r))
                 write_addr = self.get_address(i + 1, mode1)
                 self.a[write_addr] = r
@@ -124,7 +126,7 @@ def part1(lst):
         res = c.proc()
     print(c.outputs)
     
-def paint(board):
+def part1(board):
     s =  open("input13.txt").read()
 
     lst = [ int(x) for x in s.split(",") ]
@@ -152,23 +154,7 @@ def paint(board):
     wall_cnt = list(board.values()).count(2)
     print(wall_cnt)
 
-def main():
-    
-    board = defaultdict(int)
-
-    paint(board) 
-
-    """
-    print("PART 1", len(board))
-    
-    print("PART 2");
-
-    board = defaultdict(int)
-    board[(0, 0)] = 1
-    
-    paint(board) 
-    """
-    
+def draw(board):
     xx, yy = zip(*board.keys())
     minx = min(xx)
     maxx = max(xx)
@@ -184,6 +170,79 @@ def main():
             else:
                 print(" ", end="")
         print()
+
+
+def part2():
+    s =  open("input13.txt").read()
+
+    lst = [ int(x) for x in s.split(",") ]
+    lst[0] = 2
+
+    board = {}
+
+    c = Proc(lst[:], 0)
+
+    bx = 0
+    by = 0
+    px = 0
+    py = 0
+
+    BALL = 4
+    PADDLE = 3
+
+    while True:
+        #c.send(board[(x, y)])
+        res = c.proc()
+        if res == HALT:
+            break;
+        res = c.proc()
+        if res == HALT:
+            break;
+        res = c.proc()
+        if res == HALT:
+            break;
+            
+        x = c.outputs.pop(0)
+        y = c.outputs.pop(0)
+        tile = c.outputs.pop(0)
+
+        if x == -1:
+            print("Score", tile)
+            continue
+        
+                    
+        board[(x, y)] = tile
+        if tile == BALL:
+            bx = x
+            by = y
+        elif tile == PADDLE:
+            px = x
+            py = y
+ 
+        if tile == BALL:
+            draw(board)
+            if bx > px:
+                c.send(1)
+            elif bx < px:
+                c.send(-1)
+            else:
+                c.send(0)
+
+
+
+
+
+def main():
+    
+    board = defaultdict(int)
+
+    part1(board)
+
+    draw(board)
+
+    part2()
+
+    
 
 if __name__ == "__main__":
     main()
