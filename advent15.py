@@ -156,21 +156,32 @@ def part1():
 
     q = [ [1 ], [2], [3], [4] ]
 
+    target = None
+    target_dist = None
+    target_path = None
+
     while len(q) > 0:
         
         # forward
         path = q.pop(0)
-        print("path", path)
+        #print("path", path)
         i = 0
         while i < len(path):
             res, x, y, tx, ty = step(c, path[i], x, y)
             board[(tx, ty)] = res 
             if res == 0:
                 break
-            if res == 2:
+            if res == 2 and target is None:
+                target = tx, ty
+                target_dist = len(path)
+                target_path = path
+
+                # early exit - part 2 will do the rest
+
                 draw(board)
                 print("***\n", path, "\nresult=", len(path))
-                return
+                return path
+
             i += 1
         else:
             # end of path reached
@@ -186,8 +197,10 @@ def part1():
             res, x, y, tx, ty = step(c, REV[path[j]], x, y)
             j -= 1
 
-        print("after path", path, x, y)
-
+        #print("after path", path, x, y)
+    draw(board)
+    print(target, "dist=", target_dist)
+    return target_path
 
     
 def draw(board):
@@ -207,74 +220,79 @@ def draw(board):
                 print(" ", end="")
         print()
 
+SOL = [1, 1, 3, 3, 2, 2, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 2, 2, 2, 2, 4, 4, 2, 2, 4, 4, 1, 1, 4, 4, 2, 2, 4, 4, 1, 1, 4, 4, 2, 2, 2, 2, 4, 4, 2, 2, 2, 2, 4, 4, 4, 4, 2, 2, 3, 3, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 1, 1, 3, 3, 1, 1, 4, 4, 1, 1, 3, 3, 3, 3, 3, 3, 1, 1, 4, 4, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 2, 2, 2, 2, 3, 3, 1, 1, 1, 1, 3, 3, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 1, 1, 4, 4, 1, 1, 1, 1, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 1, 1, 4, 4, 1, 1, 1, 1, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 4, 4, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 1, 1, 1, 1, 3, 3, 2, 2, 3, 3, 3, 3, 1, 1, 4, 4, 1, 1, 4, 4, 1, 1, 4, 4, 2, 2, 4, 4, 2, 2, 4, 4, 4, 4, 2, 2, 3, 3, 2, 2, 3, 3, 1, 1] 
 
-def part2():
+def part2(path_to_generator):
     s =  open("input15.txt").read()
 
     lst = [ int(x) for x in s.split(",") ]
-    lst[0] = 2
-
-    board = {}
-
+    
     c = Proc(lst[:], 0)
 
-    bx = 0
-    by = 0
-    px = 0
-    py = 0
+    board = {}
+    x, y = 0, 0
+    #board[(x,y)] = 1
 
-    BALL = 4
-    PADDLE = 3
-
-    while True:
-        #c.send(board[(x, y)])
-        res = c.proc()
-        if res == HALT:
-            break;
-        res = c.proc()
-        if res == HALT:
-            break;
-        res = c.proc()
-        if res == HALT:
-            break;
-            
-        x = c.outputs.pop(0)
-        y = c.outputs.pop(0)
-        tile = c.outputs.pop(0)
-
-        if x == -1:
-            print("Score", tile)
-            continue
+    path = path_to_generator
+    for i in range(len(path)):
+        res, x, y, tx, ty = step(c, path[i], x, y)
         
-                    
-        board[(x, y)] = tile
-        if tile == BALL:
-            bx = x
-            by = y
-        elif tile == PADDLE:
-            px = x
-            py = y
- 
-        if tile == BALL:
-            draw(board)
-            if bx > px:
-                c.send(1)
-            elif bx < px:
-                c.send(-1)
-            else:
-                c.send(0)
+    board[(x, y)] = res 
+       
 
+    q = [ [1 ], [2], [3], [4] ]
+
+    target = None
+    target_dist = None
+
+    max_len = 0
+    max_path = []
+
+    while len(q) > 0:
+        
+        # forward
+        path = q.pop(0)
+
+        if len(path) > max_len:
+            max_len = len(path)
+            max_path = path
+
+        #print("path", path)
+        i = 0
+        while i < len(path):
+            res, x, y, tx, ty = step(c, path[i], x, y)
+            board[(tx, ty)] = res 
+            if res == 0:
+                break
+            i += 1
+        else:
+            # end of path reached
+            for k in DIR:
+                xn, yn = x + DIR[k][0], y + DIR[k][1]
+                if (xn, yn) not in board:
+                    q.append(path + [ k ])
+
+        #draw(board)
+        # back
+        j = i - 1 
+        while j >= 0:
+            res, x, y, tx, ty = step(c, REV[path[j]], x, y)
+            j -= 1
+
+        #print("after path", path, x, y)
+    draw(board)
+    print(max_path, "dist=", max_len)
 
 
 
 
 def main():
     
-    part1()
+    path_to_generator = part1()
 
     #draw(board)
 
-    #part2()
+    part2(path_to_generator)
 
     
 
