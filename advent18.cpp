@@ -65,13 +65,6 @@ pair<MCPI, vector<string>> preprocess_part2(const VS& a)
 }
 
 
-struct Node {
-    int x{0};
-    int y{0};
-    int from_x{0};
-    int from_y{0};
-};
-
 
 // returns number of steps or -1 if cannot reach without keys
 // and keys gathered meanwhile
@@ -181,6 +174,7 @@ void part1()
         cout << pr.first << ":" << pr.second.first << "," << pr.second.second << endl;
     }
 
+#if 0
     auto [ x0, y0 ] = c2p['@'];
 
     auto [ x1, y1 ] = c2p['a'];
@@ -193,41 +187,38 @@ void part1()
 
     auto [ nsteps2, nkeys2 ] = steps_with_keys(a, x1, y1, x2, y2, nkeys);
     cout << nsteps2 << "," << nkeys2 << endl;
-
+#endif
+    
     auto key_count = distance(c2p.find('a'), c2p.end());
 
     cout << "key count " << key_count << endl;
 
-    // cost to path, keys
-    multimap<int, pair<string, string>> pq;
-
-    // path, keys
-    //set<pair<string, string>> impossible;
+    // cost to last key, gathered keys
+    multimap<int, pair<char, string>> pq;
 
     map<pair<char, unsigned int>, int> best_at_pos_with_keys;
 
-    pq.insert(pair{0, pair{"@", ""}});
+    pq.insert(pair{0, pair{'@', ""}});
 
     int min_steps = 10'000'000;
 
     while (!pq.empty()) {
         
         auto [ cost, pr ] = *pq.begin();
-        auto [ path, keys ] = pr;
+        auto [ prevch, keys ] = pr;
 
         pq.erase(pq.begin());
 
-        if (DEBUG) { cout << path << "," << keys << "," << cost << endl; }
+        if (DEBUG) { cout << prevch << "," << keys << "," << cost << endl; }
 
         if (keys.size() == key_count) {
-            min_steps = min(cost, min_steps);
+            min_steps = cost;
             break;
         }
 
         for (auto it = c2p.find('a'); it != c2p.end(); ++it) {
             auto [ nch, np ] = *it;
             if (keys.find(nch) == string::npos) {
-                auto prevch = path.back();
                 auto [ prevx, prevy ] = c2p[prevch];
                 auto [ nx, ny ] = np;
                 auto [ nsteps, nkeys ] = steps_with_keys(a, prevx, prevy, nx, ny, keys);
@@ -235,7 +226,7 @@ void part1()
                     auto idx = pair{nch, s2bits(nkeys) };
                     auto prev_best_cost = best_at_pos_with_keys[idx];
                     if (prev_best_cost == 0 || cost + nsteps < prev_best_cost) { 
-                        pq.insert(pair{cost + nsteps, pair{path + nch, nkeys}});
+                        pq.insert(pair{cost + nsteps, pair{ nch, nkeys}});
                         best_at_pos_with_keys[idx] = cost + nsteps;
                     }
                 }
