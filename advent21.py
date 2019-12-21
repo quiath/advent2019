@@ -119,23 +119,16 @@ class Proc:
         return (0, )        
     
  
-def part1():
+def run(springcode):
 
-    s =  open("input21.txt").read()
+    prgs =  open("input21.txt").read()
 
-    lst = [ int(x) for x in s.split(",") ]
+    lst = [ int(x) for x in prgs.split(",") ]
     
     c = Proc(lst[:], 0)
 
-    s = """OR A T
-    AND B T
-    AND C T
-    AND D T
-    NOT T J
-    AND D J
-WALK"""
 
-    s = "\x0A".join([x.strip() for x in s.splitlines()]) + "\x0A"
+    s = "\x0A".join([x.strip() for x in springcode.strip().splitlines()]) + "\x0A"
 
     si = 0
 
@@ -149,20 +142,60 @@ WALK"""
         elif res is None:
             while len(c.outputs) > 0:
                 code = c.outputs.pop(0)
-                if (code <256) :
+                if (code < 256) :
                     print(chr(code), end="")
                 else:
                     print("Result:", code)
                     
 
+# the trick is to:
+# never jump if the three tiles in front are not holes
+# and never jump if there is a tile four tiles in front
+# jump = not (a and b and c) and d and (e or h) 
 
-    
+def part1():
+    springcode = """
+    OR A T
+    AND B T
+    AND C T
+    NOT T J
+    AND D J
+    WALK"""
+
+    run(springcode) 
+
+
+# the trick is to:
+# never jump if the three tiles in front are not holes
+# and never jump if there is a tile four tiles in front
+# and never jump if there are holes 5 and 8 tiles in front
+# calculation of the "e or h" required a trick
+# to clear the temporary register by "and"ing with 
+# its negated value in the jump register
+# jump = not (a and b and c) and d and (e or h) 
+
+
+def part2():
+    springcode = """
+    OR A T
+    AND B T
+    AND C T
+    NOT T J
+    AND J T
+    AND D J
+    OR E T
+    OR H T
+    AND T J
+    RUN
+    """
+    run(springcode) 
+
 
 def main():
     
     part1()
 
-    #part2()
+    part2()
 
 if __name__ == "__main__":
     main()
