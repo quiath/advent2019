@@ -29,8 +29,6 @@ StrVecVec read(const string& fn)
     return v;
 }
 
-// straightforward shuffle of the table 
-
 void part1()
 {
 
@@ -86,22 +84,23 @@ void part1()
 
 }
 
-// 64 bit overflowed!!!
-// using UInt = unsigned long long;
-// using Int = long long;
+//using UInt = unsigned long long;
+//using Int = long long;
 using UInt = unsigned __int128_t;
 using Int = __int128_t;
 
 using IntC = int64_t;
 
-// used for testing some theories about the structure
-//#define TEST
+#define TEST
 #ifdef TEST
 
+
 constexpr UInt N = 10007ULL;
+//constexpr UInt N = 10009ULL;
 
 constexpr UInt START = 2019ULL;
-constexpr UInt M = 10007ULL;
+//constexpr UInt M = 10007ULL;
+constexpr UInt M = N;
 
 constexpr UInt R = 2514ULL;
 
@@ -114,15 +113,11 @@ constexpr UInt M = 101741582076661ULL;
 
 #endif
 
-// operations on indexes for each operation
-
 UInt rev(UInt k)
 {
     return N - 1 - k;
 }
 
-
-// Inverse
 
 UInt rev_1(UInt k)
 {
@@ -136,8 +131,6 @@ UInt rot(UInt k, Int val)
     }
     return rot(k, N + val);
 }
-
-// Finding identities about operations
 
 // cut 3
 // 0 1 2 3 4 5 6
@@ -156,7 +149,6 @@ UInt rot(UInt k, Int val)
 // 0 1 2 3 4 5 6
 // 4 5 6 0 1 2 3
 
-// Inverse rot
 
 UInt rot_1(UInt k, Int val)
 {
@@ -254,10 +246,6 @@ UInt rot_1(UInt k, Int val, UInt N)
 // 3 * k == 1 (mod 7)
 // 7 | 3 * k - 1
 
-// when trying to inverse deal_into I discovered myself that I need to 
-// do the inverse modulo
-// for which I found an algorithm online
-
 // Source: https://www.geeksforgeeks.org/modular-division/
 
 // C function for extended Euclidean Algorithm 
@@ -330,8 +318,6 @@ UInt deal_into(UInt k, Int val)
     return (val * k) % N; 
 }
 
-// most difficult inverse
-
 UInt deal_into_1(UInt k, Int val)
 {
     if (k == 0) {
@@ -366,12 +352,24 @@ UInt deal_into_1(UInt k, Int val, UInt N)
     return (uval * k) % N; 
 }
 
-// prefer these aliases to even shorter abbreviations
+
+//0123456
+//3502461
+
+//0123456
+//2630415
+
+//0123456
+//6012345 (N-1)
+
+//
+// b = 2 * k + 3 (mod 7)
+// 
+// k = 
+//
 
 using IntPair = pair<int, int>;
 using IntPairVec = vector<IntPair>;
-
-// translation of the text commands to int commands, for speed
 
 IntPairVec translate(const StrVecVec& inp)
 {
@@ -392,13 +390,6 @@ IntPairVec translate(const StrVecVec& inp)
     }
     return result;
 }
-
-// the best I could find myself for part 2 was to create 
-// functions that compute the forward shuffle function
-// and backward (inverse shuffle)
-// this was not enough
-// the key was the fact that multiple applications
-// of a linear function ax+b is a linear function Ax+B
 
 Int forward(const IntPairVec& inp, Int x)
 {
@@ -439,16 +430,43 @@ Int backward(const IntPairVec& inp, Int x)
 
 void part2()
 {
+    cout << IntC(Int(-1)) << endl;
+    
+    Int mod = 7;
+    for (int i = 1; i <= 6; ++i) {
+        cout << "Divide 1 by " << i << " mod " << IntC(mod) << endl;
+        modDivide(1, i, mod);
+        cout << endl;
+        
+        UInt c { 2 };
+        auto nc = /*deal_into*/rot(c, -i, mod);
+        auto pc = /*deal_into_1*/rot_1(nc, -i, mod);
+        cout << IntC(c) << "," << IntC(nc) << "," << IntC(pc) << endl;
+    }
+
+
     auto inp = read("input22.txt");
 
     auto num_input { translate(inp) };
 
-    // once I knew I had to compute the A,B 
-    // to express the entire set of transformations 
-    // as Ax+B, I arrived at this solution
-    // having A and B it was moderately easy 
-    // to compute A0, B0 for A0x+B0 expressing
-    // the entire reverse set of transformations
+#ifdef TEST    
+    UInt testval = forward(num_input, 2019);
+    cout << "Forward returned:" << IntC(testval) << endl;
+    UInt rval = backward(num_input, testval);
+
+    cout << "Backward returned:" << IntC(rval) << endl;
+#endif
+
+    cout << "0:" << IntC(forward(num_input, 0)) << endl;
+    cout << "1:" << IntC(forward(num_input, 1)) << endl;
+    cout << "2:" << IntC(forward(num_input, 2)) << endl;
+    cout << "3:" << IntC(forward(num_input, 3)) << endl;
+    cout << "4:" << IntC(forward(num_input, 4)) << endl;
+    cout << "" << IntC(forward(num_input, 4)) - IntC(forward(num_input, 3)) << endl;
+    cout << "" << IntC(forward(num_input, 1)) - IntC(forward(num_input, 0)) << endl;
+
+    cout << (311 * 2019 + 5046) % 10007 << endl;
+    cout << IntC(modDiv(10007 - 5046, 311, N)) << endl;
 
     Int B = forward(num_input, 0);
     Int A = (forward(num_input, 1) + N - B) % N;
@@ -458,36 +476,147 @@ void part2()
     Int A0 = (N + T - B0) % N;
     cout << "A0 B0 " << IntC(A0) << " " << IntC(B0) << " nxt " << IntC((A0 * 2514 + B0) % N) <<  endl;
 
-    /*
-A B 4166808150734 91211973193983 nxt 32581686028592
-A0 B0 115432309303926 105522863498059 nxt 7207741891672
-    */
-    
-    {
-        // here's the other clue I used
-        // f(f(x)) = f(a*x+b) = a*(a*x+b)+b = a*a*x+a*b+b => a1=a*a, b1=a*b*b
-        // where mod N can be applied at every step
-        // I knew the fast power computation algorithm earlier and applied it
+    return;
 
-        Int x = 2020;
-        Int y = M;
-        Int a = A0;
-        Int b = B0;
+    // forward: x -> 311 * x + 5046
+    // forward: x -> A   * x + B
+    // backward: x -> A0 * x + B0
+    // B0 = modDiv(N - B, A, N)
+    // T = modDiv(N + 1 - B, A, N)
+    // A0 = N + T - B0
 
-        while (y > 0) {
-            Int bit = y & 1;
-            y >>= 1;
-            if (bit) {
-                x = (a * x + b) % N;
-            }
-            Int na = (a * a) % N;
-            Int nb = ((a * b) + b) % N;
-            a = na;
-            b = nb;
+    // 9122 + x * 3845
+
+
+    //Int start { M / 2 }; // nothing
+    //Int start { M / 2 + 1 }; // nothing
+    //Int start { N / 2 };  // nothing
+    // Int start { N - 1 };
+    // Int start { N - M };
+
+    Int start { 2019 };
+
+    //Int tgt { 2020 };
+    Int tgt { 2019 };
+    Int fwd{start}, bck{start};
+    for (auto i = 0LL; i < M; ++i) {
+        if (i % 1000000 == 0) {
+            cout << "i=" << i << " before fwd=" << IntC(fwd) << " bck=" << IntC(bck) << "\n" ;
         }
-        cout << "Result part 2: " << IntC(x) << endl;
+        auto fwdn = forward(num_input, fwd);
+        auto bckn = backward(num_input, bck);
+        
+        if (fwdn == tgt || bckn == tgt) {
+            cout << "i=" << i << " after fwd=" << IntC(fwdn) << " <- " << IntC(fwd) << " bck=" << IntC(bckn) << " <- " << IntC(bck) << "\n" ;
+        }
+        //cout << IntC(fwdn - fwd) << "," << IntC(bckn - bck) << '\n';
+        fwd = fwdn;
+        bck = bckn;
+
     }
-    
+
+    return;
+
+
+    /*
+    for (const auto& line_tokens : inp) {
+        copy(line_tokens.begin(), line_tokens.end(), ostream_iterator<string>(cout, "  "));
+        cout << endl;
+    }
+    */
+
+    //UInt x {2020ULL};
+    //UInt x {START};
+    UInt x {2307};
+
+    UInt orig { START };
+
+    for (UInt iter = 0; iter < M; ++iter) {
+        auto px { x };
+        for (const auto& line_tokens : inp) {
+            const auto&s { line_tokens[0] };
+            if (s == "deal") {
+                if (line_tokens[1] == "into") {
+                    auto nx = rev(x);
+                    auto x_1 = rev_1(nx);
+                    if (x != x_1) {
+                        cout << "rev! " << IntC(x) << endl; 
+                    }
+                    x = nx;
+                    continue;
+                }
+                int val = stoi(line_tokens[3]);
+                auto nx = deal_into(x, val);
+                auto x_1 = deal_into_1(nx, val);
+
+                if (x != x_1) {
+                    cout << "deal! " << IntC(x) << " nx=" << IntC(nx) << " x_1=" << IntC(x_1) << endl; 
+                }
+
+                x = nx;
+            } else if (s == "cut") {
+
+                int val = stoi(line_tokens[1]);
+                auto nx = rot(x, val);
+                auto x_1 = rot_1(nx, val);
+
+                if (x != x_1) {
+                    cout << "rot! x=" << IntC(x) << " nx=" << IntC(nx) << " x_1=" << IntC(x_1) << " val=" << val << endl; 
+                }
+
+                x = nx;
+            }
+        }
+        if (x == orig) {
+            cout << "Match after iteration " << IntC(iter) << " " << IntC(px) << " -> " << IntC(x) << endl;
+        }
+        if (px == orig) {
+            cout << "After iteration " << IntC(iter) << " " << IntC(px) << " -> " << IntC(x) << endl;
+        }
+
+        //cout << iter << " " << x << endl;
+    }
+
+    // after 1 it. a[2019] = 2307
+    // predecessor(2019) = 2307
+
+    cout << "Test part 2: " << IntC(x) << endl;
+
+    auto nx = 2019; //R;
+    for (Int iter = 0; iter < /*M*/ 1; ++iter) {
+        for (int i = inp.size() - 1; i >= 0; --i) {
+            const auto& line_tokens = inp[i];
+            const auto& s { line_tokens[0] };
+            if (s == "deal") {
+                if (line_tokens[1] == "into") {
+                    auto x_1 = rev_1(nx);
+                    nx = x_1;
+                    continue;
+                }
+                int val = stoi(line_tokens[3]);
+                auto x_1 = deal_into_1(nx, val);
+
+                nx = x_1;
+            } else if (s == "cut") {
+
+                int val = stoi(line_tokens[1]);
+                auto x_1 = rot_1(nx, val);
+
+                nx = x_1;
+            }
+        }
+        /*if (x == orig) {
+            cout << "Match after iteration " << IntC(iter) << " " << IntC(px) << " -> " << IntC(x) << endl;
+        }
+        if (px == orig) {
+            cout << "After iteration " << IntC(iter) << " " << IntC(px) << " -> " << IntC(x) << endl;
+        }*/
+
+        cout << IntC(iter) << " predecessor " << IntC(nx) << endl;
+    }
+
+
+
 }
 
 int main(int, char**)
@@ -495,6 +624,9 @@ int main(int, char**)
     part1();
 
     part2();
+
+    cout << "119315717514047" << endl; // prime
+    cout << "101741582076661" << endl; // prime
 
     return 0;
 
