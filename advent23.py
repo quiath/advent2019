@@ -34,6 +34,9 @@ class Proc:
     def take(self):
         return self.outputs.pop(0)
 
+    def is_empty_input(self):
+        return len(self.inputs) == 0 or len(self.inputs) == 1 and self.inputs[0] == -1
+
     def get_address(self, i, mode):
         #print(i, mode)
         if mode == 0:
@@ -188,13 +191,86 @@ def part1():
             print(i, "Step") 
 
 
+def part2():
+
+    prgs =  open("input23.txt").read()
+
+    lst = [ int(x) for x in prgs.split(",") ]
+
+    N = 50
+
+    comp = []
+    for i in range(N):
+        #c = Proc(lst[:], i, await_input = -1)
+        c = Proc(lst[:], i, await_input = None)
+        c.send(i)
+        comp.append(c)
+
+    outputs = defaultdict(list)
+    index = defaultdict(int)
+
+    is_await = [ False ] * N
+
+    nat = None
+    natlist = []
+
+    i = -1
+    while True:
+
+        i += 1
+        if i == N:
+            i = 0
+        
+        c = comp[i]
+        res = c.proc()
+        print(i, res)
+
+        is_await[i] = res == AWAIT
+
+        all_empty = all(comp[j].is_empty_input() for j in range(N))
+
+        if all(is_await) and all_empty and nat is not None:
+            comp[0].send(nat[0])
+            comp[0].send(nat[1])
+            natlist.append(nat)
+            print("NAT sent " , nat)
+            if len(natlist) >= 2 and natlist[-1][1] ==  natlist[-2][1]:
+                print("Y=", natlist[-1][1], natlist[-1])
+                break
+
+
+        if res == HALT:
+            break
+        elif res == AWAIT:
+            print(i, "AWAIT")
+            c.send(-1)
+        elif res is None:
+            while len(c.outputs) > 0:
+                code = c.outputs.pop(0)
+                outputs[i].append(code)
+                print("Proc ", i, "generated", code)
+            
+            ind = index[i]
+            if ind + 3 <= len(outputs[i]):
+                index[i] = ind + 3
+            
+                send_id = outputs[i][ind] 
+                if send_id >= N:
+                    print(outputs[i][ind:])
+                    if send_id == 255:
+                        nat = outputs[i][ind + 1], outputs[i][ind + 2]
+                else:
+                    comp[send_id].send(outputs[i][ind + 1])
+                    comp[send_id].send(outputs[i][ind + 2])
+        elif res == STEP:
+            print(i, "Step") 
 
 
 def main():
     
     part1()
 
-    #part2()
+    part2()
 
 
 if __name__ == "__main__":
